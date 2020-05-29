@@ -1,0 +1,69 @@
+#!/bin/bash
+#
+# Script to facilitate tracking time in basic timeclock format
+#
+# Copyright (C) 2020 Robert Bollons - All Rights Reserved
+# Permission to copy and modify is granted under the MIT license
+# Version 1.0.0
+# Licence: MIT
+
+set -o errtrace
+set -o nounset
+set -o pipefail
+
+TCLOCK_FILE=${TCLOCK_FILE:=~/log.timeclock}
+
+fail () {
+    local message="${1}"
+
+    echo "Error: ${message}";
+    exit 1
+}
+
+_log_time_in () {
+    echo i $(date "+%Y-%m-%d %H:%M:%S") $* >>"$TCLOCK_FILE"
+}
+
+_log_time_out () {
+    echo o $(date "+%Y-%m-%d %H:%M:%S") >>"$TCLOCK_FILE"
+}
+
+_edit () {
+    $EDITOR "$TCLOCK_FILE"
+}
+
+_usage () {
+cat << EOF
+usage: $(basename "$0") [action]
+tclock - command line time tracker
+ACTIONS
+    i|in|start     <description>      Begin tracking / Log time in entry
+    o|out|stop                        Stop tracking / Log time out
+    edit                              Launch default editor with the timeclock file
+EOF
+}
+
+if [[ $# == 0 ]] ; then
+    _usage
+else
+    case $1 in
+        i|in|start)
+            if ! [ -n "${2+1}" ] ; then
+                fail ""
+            fi
+            _log_time_in "$2"
+            ;;
+        o|out|stop)
+            _log_time_out
+            ;;
+        edit)
+            _edit
+            ;;
+        --help|help)
+            _usage
+            ;;
+        *)
+            _usage
+            ;;
+    esac
+fi
