@@ -28,6 +28,14 @@ _log_time_out () {
     echo o $(date "+%Y-%m-%d %H:%M:%S") >>"$TCLOCK_FILE"
 }
 
+_print_entries () {
+   cat "$TCLOCK_FILE" | awk -i tclock.awk '{printEntries()}'
+}
+
+_print_summary () {
+    cat "$TCLOCK_FILE" | awk -i tclock.awk '{parseSummary()} END {printSummary()}'
+}
+
 _edit () {
     $EDITOR "$TCLOCK_FILE"
 }
@@ -55,6 +63,12 @@ else
             ;;
         o|out|stop)
             _log_time_out
+            ;;
+        print)
+            _print_entries
+            ;;
+        summary)
+            _print_summary
             ;;
         edit)
             _edit
