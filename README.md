@@ -16,6 +16,7 @@ tclock uses the plain text [timeclock](https://hledger.org/timeclock.html) forma
 ### Pre-requisites
 - bash
 - GNU awk
+- GNU date
 
 ### Installing
 ````

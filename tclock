@@ -20,6 +20,10 @@ fail () {
     exit 1
 }
 
+_parse_friendly_date () {
+    echo $(date --date="$1" +%F)
+}
+
 # TODO: Log a space after the category to be compatible with hledger
 _log_time_in () {
     echo i $(date "+%Y-%m-%d %H:%M:%S") $* >>"$TCLOCK_FILE"
@@ -49,13 +53,13 @@ _usage () {
 cat << EOF
 usage: $(basename "$0") [action]
 tclock - command line time tracker
-ACTIONSk
-    i|in|start     <description>      Begin tracking / Log time in entry
-    o|out|stop                        Stop tracking / Log time out
-    edit                              Launch default editor with the timeclock file
-    print          <yyyy-mm-dd>       Prints all entries for a given date
-    summary        <yyyy-mm-dd>       Prints a grouped summary of all entries for a given date
-    active                            Prints a list of open time entries
+ACTIONS
+    i|in|start  <category> <description>  Begin tracking / Log time in entry
+    o|out|stop                            Stop tracking / Log time out
+    edit                                  Launch default editor with the timeclock file
+    print       <date> <category filter>  Prints all entries for a given date
+    summary     <date> <category filter>  Prints a grouped summary of all entries for a given date
+    active                                Prints a list of open time entries
 EOF
 }
 
@@ -64,9 +68,6 @@ if [[ $# == 0 ]] ; then
 else
     case $1 in
         i|in|start)
-            if ! [ -n "${2+1}" ] ; then
-                fail "Please specify a category/description"
-            fi
             shift
             _log_time_in "$@"
             ;;
@@ -74,12 +75,10 @@ else
             _log_time_out
             ;;
         print)
-             # TODO: add validation for the arguments
-            _print_entries "${2}" "${3-}"
-
+            _print_entries $(_parse_date ${2:-"today"}) "${3-}"
             ;;
         summary)
-            _print_summary "${2}" "${3-}"
+            _print_summary $(_parse_date ${2:-"today"}) "${3-}"
             ;;
         active)
             _print_active
