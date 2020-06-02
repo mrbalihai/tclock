@@ -8,21 +8,27 @@ tclock uses the plain text [timeclock](https://hledger.org/timeclock.html) forma
 
 ### Features
 - [x] Stop/start logging
-- [ ] Reporting
+- [x] Basic Reporting
+- [ ] Install script
 - [ ] Searching
 - [ ] Charting
 
 ### Pre-requisites
-- Bash
+- bash
+- GNU awk
 
 ### Installing
 ````
 curl -L https://raw.githubusercontent.com/RobBollons/tclock/master/tclock > ./tclock && chmod +x ./tclock
 
 # Place the 'tclock' file to somewhere in your PATH for convenience
-# and maybe add a quick alias to your .bashrc/.zshrc like so:
 
-echo 'alias tc=tclock' >> ~/.bashrc
+# To get the reporting commands (print, summary and active) to work you need to download the tclock.awk file and add it to your AWKPATH
+curl -L https://raw.githubusercontent.com/RobBollons/tclock/master/tclock.awk > ./tclock.awk
+
+# If AWKPATH isn't defined you can just add it to your .bashrc/.zshrc and set it like you would the PATH variable e.g.
+export AWKPATH=$AWKPATH:~/.local/awk/
+
 ````
 
 ### Usage
@@ -32,8 +38,12 @@ usage: tclock [action]
 tclock - a simple command line time tracker
 
 ACTIONS
-   i|start     <description>              Update an existing entry to add additional fields to
-   o|stop                                 Remove an entry from the password database
+    i|in|start     <description>      Begin tracking / Log time in entry
+    o|out|stop                        Stop tracking / Log time out
+    edit                              Launch default editor with the timeclock file
+    print          <yyyy-mm-dd>       Prints all entries for a given date
+    summary        <yyyy-mm-dd>       Prints a grouped summary of all entries for a given date
+    active                            Prints a list of open time entries
 ````
 
 The default location of the timeclock file is '~/log.timeclock' however this can be overridden using the TCLOCK_FILE env variable. So for example you could put this in your .bashrc:
