@@ -20,6 +20,7 @@ fail () {
     exit 1
 }
 
+# TODO: Log a space after the category to be compatible with hledger
 _log_time_in () {
     echo i $(date "+%Y-%m-%d %H:%M:%S") $* >>"$TCLOCK_FILE"
 }
@@ -29,11 +30,15 @@ _log_time_out () {
 }
 
 _print_entries () {
-   cat "$TCLOCK_FILE" | awk -i tclock.awk '{printEntries()}'
+    cat "$TCLOCK_FILE" | awk -i tclock.awk "/^[io]/{printEntries(\"$1\", \"$2\")}"
 }
 
 _print_summary () {
-    cat "$TCLOCK_FILE" | awk -i tclock.awk '{parseSummary()} END {printSummary()}'
+    cat "$TCLOCK_FILE" | awk -i tclock.awk "/^[io]/{collectSummary(\"$1\", \"$2\")} END {printSummary()}"
+}
+
+_print_active () {
+    cat "$TCLOCK_FILE" | awk -i tclock.awk "/^[io]/{collectActive()} END {printActive()}"
 }
 
 _edit () {
@@ -44,10 +49,13 @@ _usage () {
 cat << EOF
 usage: $(basename "$0") [action]
 tclock - command line time tracker
-ACTIONS
+ACTIONSk
     i|in|start     <description>      Begin tracking / Log time in entry
     o|out|stop                        Stop tracking / Log time out
     edit                              Launch default editor with the timeclock file
+    print          <yyyy-mm-dd>       Prints all entries for a given date
+    summary        <yyyy-mm-dd>       Prints a grouped summary of all entries for a given date
+    active                            Prints a list of open time entries
 EOF
 }
 
@@ -57,18 +65,24 @@ else
     case $1 in
         i|in|start)
             if ! [ -n "${2+1}" ] ; then
-                fail ""
+                fail "Please specify a category/description"
             fi
-            _log_time_in "$2"
+            shift
+            _log_time_in "$@"
             ;;
         o|out|stop)
             _log_time_out
             ;;
         print)
-            _print_entries
+             # TODO: add validation for the arguments
+            _print_entries "${2}" "${3-}"
+
             ;;
         summary)
-            _print_summary
+            _print_summary "${2}" "${3-}"
+            ;;
+        active)
+            _print_active
             ;;
         edit)
             _edit
