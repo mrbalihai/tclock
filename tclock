@@ -12,6 +12,9 @@ set -o nounset
 set -o pipefail
 
 TCLOCK_FILE=${TCLOCK_FILE:=~/log.timeclock}
+GDATE=$(command -v gdate || command -v date)
+GAWK=$(command -v gawk || command -v awk)
+
 
 fail () {
     local message="${1}"
@@ -20,29 +23,29 @@ fail () {
     exit 1
 }
 
-_parse_friendly_date () {
-    echo $(date --date="$1" +%F)
+_parse_date () {
+    echo $($GDATE --date="$1" +%F)
 }
 
 # TODO: Log a space after the category to be compatible with hledger
 _log_time_in () {
-    echo i $(date "+%Y-%m-%d %H:%M:%S") $* >>"$TCLOCK_FILE"
+    echo i $($GDATE "+%Y-%m-%d %H:%M:%S") $* >>"$TCLOCK_FILE"
 }
 
 _log_time_out () {
-    echo o $(date "+%Y-%m-%d %H:%M:%S") >>"$TCLOCK_FILE"
+    echo o $($GDATE "+%Y-%m-%d %H:%M:%S") >>"$TCLOCK_FILE"
 }
 
 _print_entries () {
-    cat "$TCLOCK_FILE" | awk -i tclock.awk "/^[io]/{printEntries(\"$1\", \"$2\")}"
+    cat "$TCLOCK_FILE" | $GAWK -i tclock.awk "/^[io]/{printEntries(\"$1\", \"$2\")}"
 }
 
 _print_summary () {
-    cat "$TCLOCK_FILE" | awk -i tclock.awk "/^[io]/{collectSummary(\"$1\", \"$2\")} END {printSummary()}"
+    cat "$TCLOCK_FILE" | $GAWK -i tclock.awk "/^[io]/{collectSummary(\"$1\", \"$2\")} END {printSummary()}"
 }
 
 _print_active () {
-    cat "$TCLOCK_FILE" | awk -i tclock.awk "/^[io]/{collectActive()} END {printActive()}"
+    cat "$TCLOCK_FILE" | $GAWK -i tclock.awk "/^[io]/{collectActive()} END {printActive()}"
 }
 
 _edit () {
